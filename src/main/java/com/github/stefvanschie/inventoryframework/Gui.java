@@ -498,19 +498,23 @@ public class Gui implements Listener, InventoryHolder {
             onGlobalClick.accept(event);
         }
 
-        if (onTopClick != null &&
-            getInventory(event.getView(), event.getRawSlot()).equals(event.getView().getTopInventory())) {
-            onTopClick.accept(event);
-        }
+        Inventory inventory = getInventory(event.getView(), event.getRawSlot());
 
-        if (onBottomClick != null &&
-            getInventory(event.getView(), event.getRawSlot()).equals(event.getView().getBottomInventory())) {
-            onBottomClick.accept(event);
-        }
+        if (inventory != null) {
+            if (onTopClick != null &&
+                inventory.equals(event.getView().getTopInventory())) {
+                onTopClick.accept(event);
+            }
 
-        if ((getInventory(event.getView(), event.getRawSlot()).equals(event.getView().getBottomInventory()) &&
-            state == State.TOP) || event.getCurrentItem() == null) {
-            return;
+            if (onBottomClick != null &&
+                inventory.equals(event.getView().getBottomInventory())) {
+                onBottomClick.accept(event);
+            }
+
+            if ((inventory.equals(event.getView().getBottomInventory()) &&
+                state == State.TOP) || event.getCurrentItem() == null) {
+                return;
+            }
         }
 
         //loop through the panes reverse, because the pane with the highest priority (last in list) is most likely to have the correct item
