@@ -23,7 +23,8 @@ public final class SkullUtil {
      *
      * @since 0.5.0
      */
-    private SkullUtil() {}
+    private SkullUtil() {
+    }
 
     /**
      * Gets a skull from the specified id. The id is the value from the textures.minecraft.net website after the last
@@ -35,7 +36,7 @@ public final class SkullUtil {
      */
     @NotNull
     public static ItemStack getSkull(@NotNull String id) {
-        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        ItemStack item = new ItemStack(Material.SKULL_ITEM);
         ItemMeta itemMeta = item.getItemMeta();
 
         GameProfile profile = new GameProfile(UUID.randomUUID(), null);
