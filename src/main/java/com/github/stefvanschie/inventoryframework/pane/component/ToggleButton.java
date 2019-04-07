@@ -51,11 +51,11 @@ public class ToggleButton extends Pane {
         super(length, height);
 
         this.enabledPane = new OutlinePane(0, 0, length, height);
-        this.enabledPane.addItem(new GuiItem(new ItemStack(Material.GREEN_STAINED_GLASS_PANE)));
+        this.enabledPane.addItem(new GuiItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 13)));
         this.enabledPane.setRepeat(true);
 
         this.disabledPane = new OutlinePane(0, 0, length, height);
-        this.disabledPane.addItem(new GuiItem(new ItemStack(Material.RED_STAINED_GLASS_PANE)));
+        this.disabledPane.addItem(new GuiItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 14)));
         this.disabledPane.setRepeat(true);
     }
 
@@ -101,7 +101,7 @@ public class ToggleButton extends Pane {
 
         int x, y;
 
-        if (event.getView().getInventory(event.getRawSlot()).equals(event.getView().getBottomInventory())) {
+        if (Gui.getInventory(event.getView(),event.getRawSlot()).equals(event.getView().getBottomInventory())) {
             x = (slot % 9) - getX() - paneOffsetX;
             y = ((slot / 9) + gui.getRows() - 1) - getY() - paneOffsetY;
 

@@ -520,7 +520,7 @@ public class Gui implements Listener, InventoryHolder {
         }
     }
 
-    private Inventory getInventory(InventoryView view, int rawSlot) {
+    public static Inventory getInventory(InventoryView view, int rawSlot) {
         // Slot may be -1 if not properly detected due to client bug
         // e.g. dropping an item into part of the enchantment list section of an enchanting table
         if (rawSlot == InventoryView.OUTSIDE || rawSlot == -1) {

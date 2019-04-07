@@ -21,7 +21,7 @@ import java.util.stream.Stream;
  *
  * @since 0.5.0
  */
-public abstract class VariableBar extends Pane implements Orientable, Flippable  {
+public abstract class VariableBar extends Pane implements Orientable, Flippable {
 
     /**
      * The green and the red parts of the slider
@@ -57,9 +57,9 @@ public abstract class VariableBar extends Pane implements Orientable, Flippable 
         this.fillPane = new OutlinePane(x, y, 0, height);
         this.backgroundPane = new OutlinePane(x, y, length, height);
 
-        this.fillPane.addItem(new GuiItem(new ItemStack(Material.GREEN_STAINED_GLASS_PANE),
+        this.fillPane.addItem(new GuiItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 13),
             event -> event.setCancelled(true)));
-        this.backgroundPane.addItem(new GuiItem(new ItemStack(Material.RED_STAINED_GLASS_PANE),
+        this.backgroundPane.addItem(new GuiItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, (short) 14),
             event -> event.setCancelled(true)));
 
         this.fillPane.setRepeat(true);
@@ -273,5 +273,6 @@ public abstract class VariableBar extends Pane implements Orientable, Flippable 
      * {@inheritDoc}
      */
     @Override
-    public void clear() {}
+    public void clear() {
+    }
 }
