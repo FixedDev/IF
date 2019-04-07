@@ -3,6 +3,7 @@ package com.github.stefvanschie.inventoryframework;
 import com.github.stefvanschie.inventoryframework.pane.*;
 import com.github.stefvanschie.inventoryframework.pane.component.*;
 import com.github.stefvanschie.inventoryframework.util.XMLUtil;
+import com.google.common.base.Preconditions;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.HumanEntity;
@@ -14,6 +15,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -100,8 +102,8 @@ public class Gui implements Listener, InventoryHolder {
      * Constructs a new GUI
      *
      * @param plugin the main plugin.
-     * @param rows the amount of rows this gui should contain, in range 1..6.
-     * @param title the title/name of this gui.
+     * @param rows   the amount of rows this gui should contain, in range 1..6.
+     * @param title  the title/name of this gui.
      */
     public Gui(@NotNull Plugin plugin, int rows, @NotNull String title) {
         if (!(rows >= 1 && rows <= 6)) {
@@ -228,7 +230,7 @@ public class Gui implements Listener, InventoryHolder {
      * stored inventories of the players and will assume no pane extends into the bottom inventory part. If the state is
      * set to bottom state it will assume one or more panes overflow into the bottom half of the inventory and will
      * store all players' inventories and clear those.
-     *
+     * <p>
      * Do not call this method if you just want the player's inventory to be cleared.
      *
      * @param state the new gui state
@@ -254,8 +256,8 @@ public class Gui implements Listener, InventoryHolder {
     /**
      * Loads a Gui from a given input stream
      *
-     * @param plugin the main plugin
-     * @param instance the class instance for all reflection lookups
+     * @param plugin      the main plugin
+     * @param instance    the class instance for all reflection lookups
      * @param inputStream the file
      * @return the gui
      */
@@ -269,7 +271,7 @@ public class Gui implements Listener, InventoryHolder {
             documentElement.normalize();
 
             Gui gui = new Gui(plugin, Integer.parseInt(documentElement.getAttribute("rows")), ChatColor
-                    .translateAlternateColorCodes('&', documentElement.getAttribute("title")));
+                .translateAlternateColorCodes('&', documentElement.getAttribute("title")));
 
             if (documentElement.hasAttribute("field"))
                 XMLUtil.loadFieldAttribute(instance, documentElement, gui);
@@ -291,7 +293,7 @@ public class Gui implements Listener, InventoryHolder {
                     gui.setOnBottomClick(onBottomClickAttribute);
                 }
             }
-            
+
             if (documentElement.hasAttribute("onGlobalClick")) {
                 Consumer<InventoryClickEvent> onGlobalClickAttribute = XMLUtil.loadOnClickAttribute(instance,
                     documentElement, "onGlobalClick");
@@ -318,7 +320,7 @@ public class Gui implements Listener, InventoryHolder {
                             }
                         });
                     } else if (parameterCount == 1 &&
-                            InventoryCloseEvent.class.isAssignableFrom(method.getParameterTypes()[0])) {
+                        InventoryCloseEvent.class.isAssignableFrom(method.getParameterTypes()[0])) {
                         gui.setOnClose(event -> {
                             try {
                                 method.setAccessible(true);
@@ -441,8 +443,8 @@ public class Gui implements Listener, InventoryHolder {
      *
      * @param attributeName the name of the property. This is the same name you'll be using to specify the property
      *                      type in the XML file.
-     * @param function how the property should be processed. This converts the raw text input from the XML node value
-     *                 into the correct object type.
+     * @param function      how the property should be processed. This converts the raw text input from the XML node value
+     *                      into the correct object type.
      * @throws IllegalArgumentException when a property with this name is already registered.
      */
     public static void registerProperty(@NotNull String attributeName, @NotNull Function<String, Object> function) {
@@ -456,7 +458,7 @@ public class Gui implements Listener, InventoryHolder {
     /**
      * Registers a name that can be used inside an XML file to add custom panes
      *
-     * @param name the name of the pane to be used in the XML file
+     * @param name       the name of the pane to be used in the XML file
      * @param biFunction how the pane loading should be processed
      * @throws IllegalArgumentException when a pane with this name is already registered
      */
@@ -472,7 +474,7 @@ public class Gui implements Listener, InventoryHolder {
      * Loads a pane by the given instance and node
      *
      * @param instance the instance
-     * @param node the node
+     * @param node     the node
      * @return the pane
      */
     @NotNull
@@ -483,7 +485,7 @@ public class Gui implements Listener, InventoryHolder {
 
     /**
      * Handles clicks in inventories
-     * 
+     *
      * @param event the event fired
      */
     @EventHandler(ignoreCancelled = true)
@@ -497,16 +499,16 @@ public class Gui implements Listener, InventoryHolder {
         }
 
         if (onTopClick != null &&
-            event.getView().getInventory(event.getRawSlot()).equals(event.getView().getTopInventory())) {
+            getInventory(event.getView(), event.getRawSlot()).equals(event.getView().getTopInventory())) {
             onTopClick.accept(event);
         }
 
         if (onBottomClick != null &&
-            event.getView().getInventory(event.getRawSlot()).equals(event.getView().getBottomInventory())) {
+            getInventory(event.getView(), event.getRawSlot()).equals(event.getView().getBottomInventory())) {
             onBottomClick.accept(event);
         }
 
-        if ((event.getView().getInventory(event.getRawSlot()).equals(event.getView().getBottomInventory()) &&
+        if ((getInventory(event.getView(), event.getRawSlot()).equals(event.getView().getBottomInventory()) &&
             state == State.TOP) || event.getCurrentItem() == null) {
             return;
         }
@@ -515,6 +517,22 @@ public class Gui implements Listener, InventoryHolder {
         for (int i = panes.size() - 1; i >= 0; i--) {
             if (panes.get(i).click(this, event, 0, 0, 9, getRows() + 4))
                 break;
+        }
+    }
+
+    private Inventory getInventory(InventoryView view, int rawSlot) {
+        // Slot may be -1 if not properly detected due to client bug
+        // e.g. dropping an item into part of the enchantment list section of an enchanting table
+        if (rawSlot == InventoryView.OUTSIDE || rawSlot == -1) {
+            return null;
+        }
+        Preconditions.checkArgument(rawSlot >= 0, "Negative, non outside slot %s", rawSlot);
+        Preconditions.checkArgument(rawSlot < view.countSlots(), "Slot %s greater than inventory slot count", rawSlot);
+
+        if (rawSlot < view.getTopInventory().getSize()) {
+            return view.getTopInventory();
+        } else {
+            return view.getBottomInventory();
         }
     }
 
